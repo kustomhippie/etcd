@@ -1,0 +1,88 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  name: etcd
+
+spec:
+  replicas: 1
+  serviceName: etcd-hl
+  podManagementPolicy: Parallel
+
+  updateStrategy:
+    type: RollingUpdate
+
+  template:
+    spec:
+      serviceAccountName: etcd
+      enableServiceLinks: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 60
+
+      containers:
+        - name: server
+          image: etcd-server
+          imagePullPolicy: Always
+
+          env:
+            - name: PODNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+            - name: ETCD_NAME
+              value: "$(PODNAME)"
+            - name: ETCD_DATA_DIR
+              value: "/var/lib/etcd"
+            - name: ETCD_INITIAL_CLUSTER_STATE
+              value: "new"
+
+            - name: ETCD_LISTEN_PEER_URLS
+              value: "http://0.0.0.0:2380"
+            - name: ETCD_INITIAL_ADVERTISE_PEER_URLS
+              value: "http://$(PODNAME).etcd-hl.$(NAMESPACE).svc.cluster.local:2380"
+
+            - name: ETCD_LISTEN_CLIENT_URLS
+              value: "http://0.0.0.0:2379"
+            - name: ETCD_ADVERTISE_CLIENT_URLS
+              value: "http://$(PODNAME).etcd-hl.$(NAMESPACE).svc.cluster.local:2379"
+
+            - name: ETCDCTL_API
+              value: "3"
+
+          ports:
+            - name: client
+              containerPort: 2379
+              protocol: TCP
+            - name: server
+              containerPort: 2380
+              protocol: TCP
+
+          # resources:
+          #   requests:
+          #     cpu: "0.1"
+          #     memory: "256Mi"
+          #   limits:
+          #     cpu: "0.5"
+          #     memory: "512Mi"
+
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/etcd
+
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+
+...
