@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 
 metadata:
-  name: etcd
+  name: etcd-server
 
 spec:
   replicas: 1
@@ -15,7 +15,7 @@ spec:
 
   template:
     spec:
-      serviceAccountName: etcd
+      serviceAccountName: etcd-server
       enableServiceLinks: true
       restartPolicy: Always
       terminationGracePeriodSeconds: 60
@@ -23,7 +23,7 @@ spec:
       containers:
         - name: server
           image: etcd-server
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
 
           env:
             - name: PODNAME
