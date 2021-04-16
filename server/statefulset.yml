@@ -7,7 +7,7 @@ metadata:
 
 spec:
   replicas: 1
-  serviceName: etcd-hl
+  serviceName: etcd-server
   podManagementPolicy: Parallel
 
   updateStrategy:
@@ -45,12 +45,12 @@ spec:
             - name: ETCD_LISTEN_PEER_URLS
               value: "http://0.0.0.0:2380"
             - name: ETCD_INITIAL_ADVERTISE_PEER_URLS
-              value: "http://$(PODNAME).etcd-hl.$(NAMESPACE).svc.cluster.local:2380"
+              value: "http://$(PODNAME).etcd-server.$(NAMESPACE).svc.cluster.local:2380"
 
             - name: ETCD_LISTEN_CLIENT_URLS
               value: "http://0.0.0.0:2379"
             - name: ETCD_ADVERTISE_CLIENT_URLS
-              value: "http://$(PODNAME).etcd-hl.$(NAMESPACE).svc.cluster.local:2379"
+              value: "http://$(PODNAME).etcd-server.$(NAMESPACE).svc.cluster.local:2379"
 
             - name: ETCDCTL_API
               value: "3"

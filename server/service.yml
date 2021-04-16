@@ -4,8 +4,12 @@ kind: Service
 
 metadata:
   name: etcd-server
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
 
 spec:
+  publishNotReadyAddresses: true
+
   ports:
     - name: client
       port: 2379
