@@ -4,6 +4,9 @@ kind: StatefulSet
 
 metadata:
   name: etcd-server
+  labels:
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/component: server
 
 spec:
   replicas: 1
@@ -13,10 +16,19 @@ spec:
   updateStrategy:
     type: RollingUpdate
 
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: etcd
+      app.kubernetes.io/component: server
+
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: etcd
+        app.kubernetes.io/component: server
+
     spec:
-      serviceAccountName: etcd-server
-      enableServiceLinks: true
+      enableServiceLinks: false
       restartPolicy: Always
       terminationGracePeriodSeconds: 60
 
@@ -55,6 +67,12 @@ spec:
             - name: ETCDCTL_API
               value: "3"
 
+          envFrom:
+            - configMapRef:
+                name: etcd-server
+            - secretRef:
+                name: etcd-server
+
           ports:
             - name: client
               containerPort: 2379
@@ -62,14 +80,6 @@ spec:
             - name: server
               containerPort: 2380
               protocol: TCP
-
-          # resources:
-          #   requests:
-          #     cpu: "0.1"
-          #     memory: "256Mi"
-          #   limits:
-          #     cpu: "0.5"
-          #     memory: "512Mi"
 
           volumeMounts:
             - name: data
