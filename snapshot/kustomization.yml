@@ -1,0 +1,38 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - cronjob.yml
+
+configMapGenerator:
+  - name: etcd-snapshot
+    options:
+      labels:
+        app.kubernetes.io/name: etcd
+        app.kubernetes.io/component: snapshot
+        realname-diff/realname: etcd-snapshot
+    literals:
+      - ETCD_SNAPSHOT_RETENTION=7d
+      - ETCD_SNAPSHOT_RETRIES=5
+      - ETCD_SNAPSHOT_TARGET_NAME=crypter
+      - ETCD_SNAPSHOT_FILE_NAME=snapshot.tar.gz
+
+secretGenerator:
+  - name: etcd-snapshot
+    options:
+      labels:
+        app.kubernetes.io/name: etcd
+        app.kubernetes.io/component: snapshot
+        realname-diff/realname: etcd-snapshot
+    literals: []
+
+images:
+  - name: etcd-snapshot
+    newName: quay.io/coreos/etcd
+    newTag: "v3.5.4"
+  - name: etcd-uploader
+    newName: quay.io/toolhippie/rclone
+    newTag: "latest"
+
+...

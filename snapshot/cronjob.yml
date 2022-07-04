@@ -1,0 +1,134 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+
+metadata:
+  name: etcd-snasphot
+  labels:
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/component: snasphot
+
+spec:
+  schedule: "@every 1h"
+  startingDeadlineSeconds: 300
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 0
+
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: etcd
+            app.kubernetes.io/component: snasphot
+
+        spec:
+          restartPolicy: OnFailure
+          hostNetwork: true
+
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: ""
+
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              effect: NoSchedule
+              operator: Exists
+
+          initContainers:
+            - name: snapshot
+              image: etcd-snapshot
+              imagePullPolicy: Always
+
+              command:
+                - /bin/sh
+                - -c
+                - |-
+                  set -euf
+
+                  mkdir -p /backup/pki/kubernetes
+                  mkdir -p /backup/pki/etcd
+
+                  cp -a /etc/kubernetes/pki/etcd/ca.crt /backup/pki/etcd/
+                  cp -a /etc/kubernetes/pki/etcd/ca.key /backup/pki/etcd/
+                  cp -a /etc/kubernetes/pki/ca.crt /backup/pki/kubernetes
+                  cp -a /etc/kubernetes/pki/ca.key /backup/pki/kubernetes
+                  cp -a /etc/kubernetes/pki/front-proxy-ca.crt /backup/pki/kubernetes
+                  cp -a /etc/kubernetes/pki/front-proxy-ca.key /backup/pki/kubernetes
+                  cp -a /etc/kubernetes/pki/sa.key /backup/pki/kubernetes
+                  cp -a /etc/kubernetes/pki/sa.pub /backup/pki/kubernetes
+
+                  etcdctl snapshot save /backup/snapshot.db
+
+              env:
+                - name: ETCD_HOSTNAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: spec.nodeName
+
+                - name: ETCDCTL_API
+                  value: "3"
+                - name: ETCDCTL_DIAL_TIMEOUT
+                  value: "3s"
+                - name: ETCDCTL_CACERT
+                  value: "/etc/kubernetes/pki/etcd/ca.crt"
+                - name: ETCDCTL_CERT
+                  value: "/etc/kubernetes/pki/etcd/healthcheck-client.crt"
+                - name: ETCDCTL_KEY
+                  value: "/etc/kubernetes/pki/etcd/healthcheck-client.key"
+
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 256M
+                requests:
+                  cpu: 100m
+                  memory: 256M
+
+              volumeMounts:
+                - mountPath: /backup
+                  name: backup
+                - mountPath: /etc/kubernetes/pki
+                  name: pki
+                  readOnly: true
+
+          containers:
+            - name: uploader
+              image: etcd-uploader
+              imagePullPolicy: Always
+
+              command:
+                - /bin/sh
+                - -c
+                - |-
+                  set -euf
+
+                  tar -czf - /backup | rclone --quiet --retries ${ETCD_SNAPSHOT_RETRIES} --retries-sleep 60s rcat ${ETCD_SNAPSHOT_TARGET_NAME}:$(date +%Y%m%dT%H%M)/${ETCD_SNAPSHOT_FILE_NAME}
+                  rclone --quiet --retries ${ETCD_SNAPSHOT_RETRIES} --retries-sleep 60s delete --min-age ${ETCD_SNAPSHOT_RETENTION} ${ETCD_SNAPSHOT_TARGET_NAME}:
+
+              envFrom:
+                - configMapRef:
+                    name: etcd-snapshot
+                - secretRef:
+                    name: etcd-snapshot
+
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 256M
+                requests:
+                  cpu: 100m
+                  memory: 256M
+
+              volumeMounts:
+                - mountPath: /backup
+                  name: backup
+
+          volumes:
+            - name: backup
+              emptyDir: {}
+            - name: pki
+              hostPath:
+                path: /etc/kubernetes/pki
+
+...

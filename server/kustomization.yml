@@ -22,4 +22,9 @@ secretGenerator:
         app.kubernetes.io/component: server
     literals: []
 
+images:
+  - name: etcd-server
+    newName: quay.io/coreos/etcd
+    newTag: "v3.5.4"
+
 ...

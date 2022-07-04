@@ -5,9 +5,4 @@ kind: Kustomization
 resources:
   - server/
 
-images:
-  - name: etcd-server
-    newName: quay.io/coreos/etcd
-    newTag: "v3.5.4"
-
 ...
