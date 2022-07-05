@@ -9,8 +9,7 @@ metadata:
     app.kubernetes.io/component: snasphot
 
 spec:
-  schedule: "@every 1h"
-  startingDeadlineSeconds: 300
+  schedule: "@every 60m"
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 3
   successfulJobsHistoryLimit: 0
