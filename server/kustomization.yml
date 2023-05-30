@@ -25,6 +25,6 @@ secretGenerator:
 images:
   - name: etcd-server
     newName: quay.io/coreos/etcd
-    newTag: "v3.5.8"
+    newTag: "v3.5.9"
 
 ...
