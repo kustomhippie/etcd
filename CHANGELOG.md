@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0](https://github.com/kustomhippie/etcd/compare/v1.0.0...v2.0.0) (2023-07-17)
+
+
+### Features
+
+* **major:** update actionhippie/kustomize action to v2 ([1b1d677](https://github.com/kustomhippie/etcd/commit/1b1d6772bbed2fe8486b80ee4fa11c7d1100c9ed))
+
 ## 1.0.0 (2023-06-05)
 
 
