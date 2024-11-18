@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.8](https://github.com/kustomhippie/etcd/compare/v2.0.7...v2.0.8) (2024-11-18)
+
+
+### Bugfixes
+
+* **deps:** update quay.io/coreos/etcd docker tag to v3.5.17 ([#18](https://github.com/kustomhippie/etcd/issues/18)) ([903925b](https://github.com/kustomhippie/etcd/commit/903925b15a6a85152807729e3cc601e1d8984b02))
+
 ## [2.0.7](https://github.com/kustomhippie/etcd/compare/v2.0.6...v2.0.7) (2024-09-16)
 
 
