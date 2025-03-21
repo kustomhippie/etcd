@@ -30,7 +30,7 @@ secretGenerator:
 images:
   - name: etcd-snapshot
     newName: quay.io/coreos/etcd
-    newTag: "v3.5.19"
+    newTag: "v3.5.20"
   - name: etcd-uploader
     newName: quay.io/toolhippie/rclone
     newTag: "latest"
